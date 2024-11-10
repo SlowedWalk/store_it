@@ -24,7 +24,7 @@ export const createSessionClient = async () => {
   };
 };
 
-export const createAdminSession = async () => {
+export const createAdminClient = async () => {
   const client = new Client()
     .setEndpoint(appwriteConfig.endPointUrl)
     .setProject(appwriteConfig.projectId)

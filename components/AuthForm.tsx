@@ -17,6 +17,7 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { createAccount } from "@/lib/actions/users.actions";
+import OtpModal from "@/components/OTPModal";
 
 type FormType = "sign-in" | "sign-up";
 
@@ -33,7 +34,7 @@ const authFormSchema = (formType: FormType) => {
 const AuthForm = ({ type }: { type: FormType }) => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
-  const [accountId, setAccountId] = useState(null);
+  const [accountId, setAccountId] = useState("");
 
   const formSchema = authFormSchema(type);
 
@@ -60,6 +61,7 @@ const AuthForm = ({ type }: { type: FormType }) => {
     })
       // .then(console.log)
       .then(({ accountId }) => setAccountId(accountId))
+      .then(console.log)
       .catch(() => {
         setErrorMessage("Failed to create account. Please try again.");
       })
@@ -151,6 +153,9 @@ const AuthForm = ({ type }: { type: FormType }) => {
         </form>
       </Form>
       {/* OTP Verification */}
+      {accountId && (
+        <OtpModal email={form.getValues("email")} accountId={accountId} />
+      )}
     </>
   );
 };

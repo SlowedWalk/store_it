@@ -8,13 +8,14 @@
 // 5. Return the user's accountId that will be used to complete the login
 // 6. Verify OTP and authenticate to login
 
-import { createAdminSession } from "@/lib/appwrite";
+import { createAdminClient } from "@/lib/appwrite";
 import { appwriteConfig } from "@/lib/appwrite/config";
 import { ID, Query } from "node-appwrite";
 import { parseStringify } from "@/lib/utils";
+import { cookies } from "next/headers";
 
 const getUserByEmail = async (email: string) => {
-  const { database } = await createAdminSession();
+  const { database } = await createAdminClient();
   const result = await database.listDocuments(
     appwriteConfig.databaseId,
     appwriteConfig.usersCollectionId,
@@ -29,8 +30,8 @@ const handleError = (error: unknown, message: string) => {
   throw error;
 };
 
-const sendEmailOTP = async (email: string) => {
-  const { account } = await createAdminSession();
+export const sendEmailOTP = async ({ email }: { email: string }) => {
+  const { account } = await createAdminClient();
 
   try {
     const session = await account.createEmailToken(ID.unique(), email);
@@ -48,11 +49,11 @@ export const createAccount = async ({
   email: string;
 }) => {
   const existingUser = await getUserByEmail(email);
-  const accountId = await sendEmailOTP(email);
+  const accountId = await sendEmailOTP({ email });
   if (!accountId) throw new Error("Account not found");
 
   if (!existingUser) {
-    const { database } = await createAdminSession();
+    const { database } = await createAdminClient();
     await database.createDocument(
       appwriteConfig.databaseId,
       appwriteConfig.usersCollectionId,
@@ -68,4 +69,27 @@ export const createAccount = async ({
   }
 
   return parseStringify({ accountId });
+};
+
+export const verifySecret = async ({
+  accountId,
+  password,
+}: {
+  accountId: string;
+  password: string;
+}) => {
+  try {
+    const { account } = await createAdminClient();
+    const session = await account.createSession(accountId, password);
+
+    (await cookies()).set("appwrite-session", session.secret, {
+      path: "/",
+      httpOnly: true,
+      sameSite: "strict",
+      secure: true,
+    });
+    return parseStringify({ sessionId: session.$id });
+  } catch (error) {
+    console.error(error);
+  }
 };
