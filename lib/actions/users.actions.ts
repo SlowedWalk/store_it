@@ -8,11 +8,12 @@
 // 5. Return the user's accountId that will be used to complete the login
 // 6. Verify OTP and authenticate to login
 
-import { createAdminClient } from "@/lib/appwrite";
+import { createAdminClient, createSessionClient } from "@/lib/appwrite";
 import { appwriteConfig } from "@/lib/appwrite/config";
 import { ID, Query } from "node-appwrite";
 import { parseStringify } from "@/lib/utils";
 import { cookies } from "next/headers";
+import { avatarPlaceholderUrl } from "@/constants";
 
 const getUserByEmail = async (email: string) => {
   const { database } = await createAdminClient();
@@ -61,8 +62,7 @@ export const createAccount = async ({
       {
         fullName,
         email,
-        avatar:
-          "https://img.freepik.com/vecteurs-premium/avatar-icon002_750950-52.jpg",
+        avatar: avatarPlaceholderUrl,
         accountId,
       },
     );
@@ -92,4 +92,22 @@ export const verifySecret = async ({
   } catch (error) {
     console.error(error);
   }
+};
+
+export const getCurrentUser = async () => {
+  const { databases, account } = await createSessionClient();
+  const result = await account.get();
+
+  console.log("result: ", result);
+
+  const user = await databases.listDocuments(
+    appwriteConfig.databaseId,
+    appwriteConfig.usersCollectionId,
+    [Query.equal("accountId", result.$id)],
+  );
+
+  // if (user.total <= 0) throw new Error("User not found");
+  if (user.total <= 0) return null;
+
+  return parseStringify(user.documents[0]);
 };
