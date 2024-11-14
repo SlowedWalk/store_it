@@ -234,3 +234,8 @@ export const getFileTypesParams = (type: string) => {
       return ["document"];
   }
 };
+
+export const handleError = (error: unknown, message: string) => {
+  console.error(error, message);
+  throw error;
+};

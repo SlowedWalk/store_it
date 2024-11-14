@@ -15,14 +15,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import FileUploader from "@/components/FileUploader";
 import { signOutUser } from "@/lib/actions/users.actions";
-
-interface Props {
-  ownerId: string;
-  accountId: string;
-  fullName: string;
-  avatar: string;
-  email: string;
-}
+import { MobileNavigationProps } from "@/types";
 
 const MobileNavigation = ({
   ownerId,
@@ -30,7 +23,7 @@ const MobileNavigation = ({
   fullName,
   avatar,
   email,
-}: Props) => {
+}: MobileNavigationProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
 
@@ -98,7 +91,7 @@ const MobileNavigation = ({
           <Separator className={"my-5 bg-light-200/20"} />
 
           <div className={"flex flex-col justify-between gap-5"}>
-            <FileUploader />
+            <FileUploader accountId={accountId} ownerId={ownerId} />
             <Button
               type="submit"
               className="mobile-sign-out-button"

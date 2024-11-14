@@ -5,14 +5,9 @@ import Image from "next/image";
 import { navItems } from "@/constants";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { SidebarProps } from "@/types";
 
-interface Props {
-  fullName: string;
-  avatar: string;
-  email: string;
-}
-
-const Sidebar = ({ fullName, avatar, email }: Props) => {
+const Sidebar = ({ fullName, avatar, email }: SidebarProps) => {
   const pathname = usePathname();
   return (
     <aside className="sidebar">

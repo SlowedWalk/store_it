@@ -11,25 +11,20 @@
 import { createAdminClient, createSessionClient } from "@/lib/appwrite";
 import { appwriteConfig } from "@/lib/appwrite/config";
 import { ID, Query } from "node-appwrite";
-import { parseStringify } from "@/lib/utils";
+import { handleError, parseStringify } from "@/lib/utils";
 import { cookies } from "next/headers";
 import { avatarPlaceholderUrl } from "@/constants";
 import { redirect } from "next/navigation";
 
 const getUserByEmail = async (email: string) => {
-  const { database } = await createAdminClient();
-  const result = await database.listDocuments(
+  const { databases } = await createAdminClient();
+  const result = await databases.listDocuments(
     appwriteConfig.databaseId,
     appwriteConfig.usersCollectionId,
-    [Query.equal("email", email)],
+    [Query.equal("email", [email])],
   );
 
   return result.total > 0 ? result.documents[0] : null;
-};
-
-const handleError = (error: unknown, message: string) => {
-  console.error(error, message);
-  throw error;
 };
 
 export const sendEmailOTP = async ({ email }: { email: string }) => {
@@ -55,8 +50,8 @@ export const createAccount = async ({
   if (!accountId) throw new Error("Account not found");
 
   if (!existingUser) {
-    const { database } = await createAdminClient();
-    await database.createDocument(
+    const { databases } = await createAdminClient();
+    await databases.createDocument(
       appwriteConfig.databaseId,
       appwriteConfig.usersCollectionId,
       ID.unique(),
@@ -111,6 +106,17 @@ export const getCurrentUser = async () => {
   if (user.total <= 0) return null;
 
   return parseStringify(user.documents[0]);
+};
+
+export const getCurrentUserDev = async () => {
+  const user = {
+    fullName: "",
+    email: "",
+    avatar: avatarPlaceholderUrl,
+    accountId: "",
+    $id: "",
+  };
+  return parseStringify(user);
 };
 
 export const signOutUser = async () => {
