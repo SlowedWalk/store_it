@@ -1,6 +1,6 @@
 "use server";
 
-import { UploadFileProps } from "@/types";
+import { AppUser, RenameFileProps, UploadFileProps } from "@/types";
 import { createAdminClient, createSessionClient } from "@/lib/appwrite";
 import {
   constructFileUrl,
@@ -10,7 +10,7 @@ import {
 } from "@/lib/utils";
 import { InputFile } from "node-appwrite/file";
 import { appwriteConfig } from "@/lib/appwrite/config";
-import { ID, Models, Query } from "node-appwrite";
+import { ID, Query } from "node-appwrite";
 import { revalidatePath } from "next/cache";
 import { getCurrentUserDev } from "@/lib/actions/users.actions";
 
@@ -62,15 +62,13 @@ export const uploadFIle = async ({
   }
 };
 
-const createQueries = (currentUser: Models.Document) => {
-  const queries = [
+const createQueries = (currentUser: AppUser) => {
+  return [
     Query.or([
       Query.equal("owner", [currentUser.$id]),
       Query.contains("users", [currentUser.email]),
     ]),
   ];
-
-  return queries;
 };
 
 export const getFiles = async () => {
@@ -93,4 +91,28 @@ export const getFiles = async () => {
   } catch (error) {
     handleError(error, "Failed to get files");
   }
+};
+
+export const renameFile = async ({
+  fileId,
+  name,
+  extension,
+  path,
+}: RenameFileProps) => {
+  const { databases } = await createSessionClient();
+  const newName = `${name}.${extension}`;
+
+  const updatedFile = await databases
+    .updateDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.filesCollectionId,
+      fileId,
+      {
+        name: newName,
+      },
+    )
+    .then(() => revalidatePath(path))
+    .catch((error) => handleError(error, "Failed to rename file"));
+
+  return parseStringify(updatedFile);
 };

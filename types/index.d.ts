@@ -66,7 +66,7 @@ declare interface SidebarProps {
 
 declare interface ThumbnailProps {
   type: string;
-  extension: string;
+  extension?: string;
   url: string;
   className?: string;
   imageClassName?: string;
@@ -76,4 +76,24 @@ declare interface ShareInputProps {
   file: Models.Document;
   onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onRemove: (email: string) => void;
+}
+
+declare interface AppUser extends Models.Document {
+  fullName: string;
+  email: string;
+  avatar?: string;
+  accountId: string;
+  files?: string[];
+}
+
+declare interface AppFile extends Models.Document {
+  name: string;
+  type: string;
+  url: string;
+  accountId: string;
+  bucketFileId: string;
+  extension: string;
+  size: number;
+  users: string[];
+  owner: AppUser;
 }
