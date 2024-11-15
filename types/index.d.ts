@@ -72,12 +72,6 @@ declare interface ThumbnailProps {
   imageClassName?: string;
 }
 
-declare interface ShareInputProps {
-  file: Models.Document;
-  onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onRemove: (email: string) => void;
-}
-
 declare interface AppUser extends Models.Document {
   fullName: string;
   email: string;
@@ -96,4 +90,11 @@ declare interface AppFile extends Models.Document {
   size: number;
   users: string[];
   owner: AppUser;
+}
+
+declare interface ShareInputProps {
+  file: AppFile;
+  // onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onInputChange: React.Dispatch<React.SetStateAction<string[]>>;
+  onRemove: (email: string) => void;
 }

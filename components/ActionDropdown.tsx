@@ -5,7 +5,6 @@ import { ActionType, AppFile } from "@/types";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -24,9 +23,9 @@ import Link from "next/link";
 import { constructDownloadUrl } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { renameFile } from "@/lib/actions/file.actions";
+import { renameFile, updateFileUsers } from "@/lib/actions/file.actions";
 import { usePathname } from "next/navigation";
-import { FileDetails } from "@/components/ActionModalContent";
+import { FileDetails, ShareInput } from "@/components/ActionModalContent";
 
 interface ActionDropdownProps {
   file: AppFile;
@@ -37,6 +36,7 @@ const ActionDropdown = ({ file }: ActionDropdownProps) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [action, setAction] = useState<ActionType | null>(null);
   const [filename, setFilename] = useState(file.name);
+  const [emails, setEmails] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   const path = usePathname();
@@ -62,17 +62,27 @@ const ActionDropdown = ({ file }: ActionDropdownProps) => {
           extension: file.extension,
           path,
         }),
-      share: () => {
-        console.log("share");
-      },
-      delete: () => {
-        console.log("delete");
-      },
+      share: () => updateFileUsers({ fileId: file.$id, emails, path }),
+      delete: () => console.log("delete"),
     };
 
     success = await actions[action.value as keyof typeof actions]();
 
     if (success) closeAllModals();
+  };
+
+  const handleRemoveUser = async (emailToRemove: string) => {
+    const updatedEmails = emails.filter((email) => email !== emailToRemove);
+
+    const success = await updateFileUsers({
+      fileId: file.$id,
+      emails: updatedEmails,
+      path,
+    });
+
+    if (success) setEmails(updatedEmails);
+
+    closeAllModals();
   };
 
   const renderDialogContent = () => {
@@ -93,6 +103,13 @@ const ActionDropdown = ({ file }: ActionDropdownProps) => {
             />
           )}
           {value === "details" && <FileDetails file={file} />}
+          {value === "share" && (
+            <ShareInput
+              file={file}
+              onInputChange={setEmails}
+              onRemove={handleRemoveUser}
+            />
+          )}
         </DialogHeader>
         {["rename", "delete", "share"].includes(value) && (
           <DialogFooter className="flex flex-col gap-3 md:flex-row">

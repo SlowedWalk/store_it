@@ -1,6 +1,11 @@
 "use server";
 
-import { AppUser, RenameFileProps, UploadFileProps } from "@/types";
+import {
+  AppUser,
+  RenameFileProps,
+  UpdateFileUsersProps,
+  UploadFileProps,
+} from "@/types";
 import { createAdminClient, createSessionClient } from "@/lib/appwrite";
 import {
   constructFileUrl,
@@ -113,6 +118,28 @@ export const renameFile = async ({
     )
     .then(() => revalidatePath(path))
     .catch((error) => handleError(error, "Failed to rename file"));
+
+  return parseStringify(updatedFile);
+};
+
+export const updateFileUsers = async ({
+  fileId,
+  emails,
+  path,
+}: UpdateFileUsersProps) => {
+  const { databases } = await createSessionClient();
+
+  const updatedFile = await databases
+    .updateDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.filesCollectionId,
+      fileId,
+      {
+        users: emails,
+      },
+    )
+    .then(() => revalidatePath(path))
+    .catch((error) => handleError(error, "Failed to share the file"));
 
   return parseStringify(updatedFile);
 };
