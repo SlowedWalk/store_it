@@ -2,6 +2,7 @@
 
 import {
   AppUser,
+  DeleteFileProps,
   RenameFileProps,
   UpdateFileUsersProps,
   UploadFileProps,
@@ -142,4 +143,27 @@ export const updateFileUsers = async ({
     .catch((error) => handleError(error, "Failed to share the file"));
 
   return parseStringify(updatedFile);
+};
+
+export const deleteFile = async ({
+  fileId,
+  bucketFileId,
+  path,
+}: DeleteFileProps) => {
+  const { databases, storage } = await createAdminClient();
+
+  await databases
+    .deleteDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.filesCollectionId,
+      fileId,
+    )
+    .then(
+      async () =>
+        await storage.deleteFile(appwriteConfig.bucketId, bucketFileId),
+    )
+    .then(() => revalidatePath(path))
+    .catch((error) => handleError(error, "Failed to share the file"));
+
+  return parseStringify({ status: "success" });
 };
